@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Japanese Hiragana & Core Vocabulary Learning</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f8fafc; color: #1e293b; line-height: 1.6; padding: 15px; }
+        header { text-align: center; margin-bottom: 20px; }
+        h1 { font-size: 1.5rem; color: #0f172a; margin-bottom: 5px; }
+        p { color: #64748b; font-size: 0.9rem; }
+        
+        .nav-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { padding: 8px 16px; border: none; background: #e2e8f0; color: #475569; font-weight: bold; border-radius: 20px; cursor: pointer; transition: 0.2s; }
+        .tab-btn.active { background: #3b82f6; color: white; }
+
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        
+        .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px; }
+        .kana-card { background: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 12px; padding: 10px 5px; text-align: center; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .kana-card:active { background: #cbd5e1; transform: scale(0.95); }
+        .kana-char { font-size: 1.3rem; font-weight: bold; color: #0f172a; }
+        .kana-romaji { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+
+        .detail-view { display: none; }
+        .back-btn { background: none; border: none; color: #3b82f6; font-size: 1rem; font-weight: bold; cursor: pointer; margin-bottom: 15px; display: inline-flex; align-items: center; gap: 5px; }
+        .detail-header { text-align: center; margin-bottom: 15px; }
+        .detail-char { font-size: 3.5rem; font-weight: bold; color: #3b82f6; line-height: 1; }
+        .detail-romaji { font-size: 1.1rem; color: #64748b; margin-top: 5px; }
+        
+        .speak-btn { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer; margin: 10px auto; display: block; box-shadow: 0 2px 4px rgba(59,130,246,0.3); }
+
+        .canvas-container { position: relative; width: 220px; height: 220px; margin: 15px auto; border: 2px dashed #cbd5e1; border-radius: 12px; background: #fff; overflow: hidden; }
+        #bgCanvas, #drawCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; touch-action: none; }
+        #bgCanvas { z-index: 1; }
+        #drawCanvas { z-index: 2; }
+        
+        .tools { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
+        .tool-btn { padding: 6px 14px; border: 1px solid #cbd5e1; background: #fff; border-radius: 8px; font-size: 0.85rem; cursor: pointer; }
+        .tool-btn.active { background: #0f172a; color: white; border-color: #0f172a; }
+
+        .vocab-section { margin-top: 20px; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .vocab-title { font-size: 1rem; font-weight: bold; color: #0f172a; margin-bottom: 10px; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+        .vocab-item { margin-bottom: 12px; }
+        .vocab-word { font-size: 1.05rem; font-weight: bold; color: #2563eb; }
+        .vocab-sub { font-size: 0.85rem; color: #64748b; }
+        .vocab-example { font-size: 0.9rem; color: #334155; margin-top: 2px; font-style: italic; }
+
+        .quiz-view { display: none; }
+        .quiz-settings { background: #f1f5f9; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+        .quiz-settings label { display: block; font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; }
+        .quiz-settings select { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 10px; font-size: 0.9rem; }
+        .quiz-card { text-align: center; padding: 30px; background: #f8fafc; border-radius: 12px; border: 2px solid #e2e8f0; margin-bottom: 15px; }
+        .quiz-target { font-size: 4rem; font-weight: bold; color: #0f172a; margin-bottom: 10px; }
+        .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .option-btn { padding: 15px; font-size: 1.1rem; font-weight: bold; border: 2px solid #cbd5e1; background: white; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+        .option-btn.correct { background: #22c55e !important; color: white; border-color: #22c55e; }
+        .option-btn.wrong { background: #ef4444 !important; color: white; border-color: #ef4444; }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Japanese Hiragana & Vocabulary</h1>
+        <p>Tap a card for writing & vocabulary, or switch to quiz modes</p>
+    </header>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('learn')">Hiragana & Vocab</button>
+        <button class="tab-btn" onclick="switchTab('quiz')">Kana Quiz</button>
+        <button class="tab-btn" onclick="switchTab('vocabQuiz')">Vocab Quiz</button>
+    </div>
+
+    <div class="container">
+        <!-- Learning Home -->
+        <div id="learnView">
+            <h3 style="margin-bottom: 10px; font-size: 1rem; color: #475569;">Hiragana</h3>
+            <div class="grid-5" id="kanaGrid"></div>
+        </div>
+
+        <!-- Detail Learning View (Writing & Vocab) -->
+        <div id="detailView" class="detail-view">
+            <button class="back-btn" onclick="goBack()">❮ Back to List</button>
+            <div class="detail-header">
+                <div class="detail-char" id="detChar">あ</div>
+                <div class="detail-romaji" id="detRomaji">a</div>
+            </div>
+            <button class="speak-btn" onclick="speakCurrent()">🔊 Play Pronunciation</button>
+
+            <!-- Stroke Tracing Practice -->
+            <div style="text-align: center; font-size: 0.85rem; color: #64748b; margin-bottom: 5px;">Stroke Tracing Practice</div>
+            <div class="tools">
+                <button class="tool-btn active" id="penBtn" onclick="setTool('pen')">Pen</button>
+                <button class="tool-btn" id="eraserBtn" onclick="setTool('eraser')">Eraser</button>
+                <button class="tool-btn" onclick="clearDraw()">Clear</button>
+            </div>
+            <div class="canvas-container">
+                <canvas id="bgCanvas"></canvas>
+                <canvas id="drawCanvas"></canvas>
+            </div>
+
+            <!-- Vocabulary & Examples -->
+            <div class="vocab-section" id="vocabSection">
+                <div class="vocab-title">📖 Core Vocabulary & Examples</div>
+                <div id="vocabContent"></div>
+            </div>
+        </div>
+
+        <!-- Kana Quiz Mode -->
+        <div id="quizView" class="quiz-view">
+            <div class="quiz-settings">
+                <label>Select Quiz Range:</label>
+                <select id="quizRange">
+                    <option value="25">First 25 sounds (a ~ na)</option>
+                    <option value="30">First 30 sounds (a ~ ha)</option>
+                    <option value="35">First 35 sounds (a ~ ma)</option>
+                    <option value="40">First 40 sounds (a ~ ya)</option>
+                    <option value="45">First 45 sounds (a ~ ra)</option>
+                    <option value="50" selected>All 50 Sounds</option>
+                </select>
+                <button class="speak-btn" style="width: 100%; margin: 0;" onclick="startQuiz()">Start Quiz</button>
+            </div>
+
+            <div id="quizArea" class="hidden">
+                <div class="quiz-card">
+                    <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 5px;" id="quizProgress">Question 1 / 10</div>
+                    <div class="quiz-target" id="quizTargetChar">あ</div>
+                    <div style="font-size: 0.9rem; color: #64748b;">Select the correct Romaji:</div>
+                </div>
+                <div class="quiz-options" id="quizOptions"></div>
+            </div>
+        </div>
+
+        <!-- Vocabulary Quiz Mode -->
+        <div id="vocabQuizView" class="quiz-view">
+            <div class="quiz-settings">
+                <label>Vocabulary Quiz Info:</label>
+                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px;">Test your knowledge of Hiragana core words and meanings!</p>
+                <button class="speak-btn" style="width: 100%; margin: 0;" onclick="startVocabQuiz()">Start Vocabulary Quiz</button>
+            </div>
+
+            <div id="vocabQuizArea" class="hidden">
+                <div class="quiz-card">
+                    <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 5px;" id="vocabQuizProgress">Question 1</div>
+                    <div class="quiz-target" id="vocabQuizTarget" style="font-size: 2.2rem;"></div>
+                    <div style="font-size: 0.9rem; color: #64748b;" id="vocabQuizPrompt">What is the meaning of this word?</div>
+                </div>
+                <div class="quiz-options" id="vocabQuizOptions"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const kanaData = [
+            {char: "あ", romaji: "a", vocab: [{word: "愛 (あい)", romaji: "ai", meaning: "Love / Affection", example: "母の愛を感じる。", exRomaji: "Haha no ai o kanjiru.", exMeaning: "Feeling mother's love."}]},
+            {char: "い", romaji: "i", vocab: [{word: "犬 (いぬ)", romaji: "inu", meaning: "Dog", example: "犬が走っています。", exRomaji: "Inu ga hashitte imasu.", exMeaning: "A dog is running."}]},
+            {char: "う", romaji: "u", vocab: [{word: "海 (うみ)", romaji: "umi", meaning: "Sea / Ocean", example: "夏は海に行きます。", exRomaji: "Natsu wa umi ni ikimasu.", exMeaning: "Going to the sea in summer."}]},
+            {char: "え", romaji: "e", vocab: [{word: "駅 (えき)", romaji: "eki", meaning: "Station", example: "駅で友達を待つ。", exRomaji: "Eki de tomodachi o matsu.", exMeaning: "Waiting for a friend at the station."}]},
+            {char: "お", romaji: "o", vocab: [{word: "男 (おとこ)", romaji: "otoko", meaning: "Man / Male", example: "あの男の人は親切です。", exRomaji: "Ano otoko no hito wa shinsetsu desu.", exMeaning: "That man is kind."}]},
+            {char: "か", romaji: "ka", vocab: [{word: "傘 (かさ)", romaji: "kasa", meaning: "Umbrella", example: "傘を持って出かけます。", exRomaji: "Kasa o motte dekakemasu.", exMeaning: "Go out with an umbrella."}]},
+            {char: "き", romaji: "ki", vocab: [{word: "木 (き)", romaji: "ki", meaning: "Tree / Wood", example: "庭に大きな木がある。", exRomaji: "Niwa ni ooki na ki ga aru.", exMeaning: "There is a big tree in the garden."}]},
+            {char: "く", romaji: "ku", vocab: [{word: "車 (くるま)", romaji: "kuruma", meaning: "Car / Vehicle", example: "新しい車を買いました。", exRomaji: "Atarashii kuruma o kaimashita.", exMeaning: "Bought a new car."}]},
+            {char: "け", romaji: "ke", vocab: [{word: "毛 (け)", romaji: "ke", meaning: "Hair / Fur", example: "猫の毛が柔らかい。", exRomaji: "Neko no ke ga yawarakai.", exMeaning: "The cat's fur is soft."}]},
+            {char: "こ", romaji: "ko", vocab: [{word: "子供 (こども)", romaji: "kodomo", meaning: "Child / Children", example: "子供が元気に遊ぶ。", exRomaji: "Kodomo ga genki ni asobu.", exMeaning: "Children play energetically."}]},
+            {char: "さ", romaji: "sa", vocab: [{word: "桜 (さくら)", romaji: "sakura", meaning: "Cherry Blossom", example: "春に桜が咲きます。", exRomaji: "Haru ni sakura ga sakimasu.", exMeaning: "Cherry blossoms bloom in spring."}]},
+            {char: "し", romaji: "shi", vocab: [{word: "塩 (しお)", romaji: "shio", meaning: "Salt", example: "スープに塩を入れる。", exRomaji: "Suupu ni shio o ireru.", exMeaning: "Add salt to the soup."}]},
+            {char: "す", romaji: "su", vocab: [{word: "寿司 (すし)", romaji: "sushi", meaning: "Sushi", example: "日本の寿司が好きです。", exRomaji: "Nihon no sushi ga suki desu.", exMeaning: "I like Japanese sushi."}]},
+            {char: "せ", romaji: "se", vocab: [{word: "世界 (せかい)", romaji: "sekai", meaning: "World", example: "世界を旅したい。", exRomaji: "Sekai o tabitai.", exMeaning: "I want to travel the world."}]},
+            {char: "そ", romaji: "so", vocab: [{word: "空 (そら)", romaji: "sora", meaning: "Sky", example: "今日の空は青いです。", exRomaji: "Kyou no sora wa aoi desu.", exMeaning: "Today's sky is blue."}]},
+            {char: "た", romaji: "ta", vocab: [{word: "太陽 (たいよう)", romaji: "taiyou", meaning: "Sun", example: "太陽が明るく輝く。", exRomaji: "Taiyou ga akaruku kagayaku.", exMeaning: "The sun shines brightly."}]},
+            {char: "ち", romaji: "chi", vocab: [{word: "父 (ちち)", romaji: "chichi", meaning: "Father (one's own)", example: "私の父は会社員です。", exRomaji: "Watashi no chichi wa kaishain desu.", exMeaning: "My father is a company employee."}]},
+            {char: "つ", romaji: "tsu", vocab: [{word: "机 (つくえ)", romaji: "tsukue", meaning: "Desk / Table", example: "机の上に本がある。", exRomaji: "Tsukue no ue ni hon ga aru.", exMeaning: "There is a book on the desk."}]},
+            {char: "て", romaji: "te", vocab: [{word: "手 (て)", romaji: "te", meaning: "Hand", example: "手をきれいに洗う。", exRomaji: "Te o kirei ni arau.", exMeaning: "Wash hands cleanly."}]},
+            {char: "と", romaji: "to", vocab: [{word: "時計 (とけい)", romaji: "tokei", meaning: "Clock / Watch", example: "新しい時計を買う。", exRomaji: "Atarashii tokei o kau.", exMeaning: "Buy a new clock/watch."}]},
+            {char: "な", romaji: "na", vocab: [{word: "夏 (なつ)", romaji: "natsu", meaning: "Summer", example: "夏休みに旅行する。", exRomaji: "Natsuyasumi ni ryokou suru.", exMeaning: "Travel during summer vacation."}]},
+            {char: "に", romaji: "ni", vocab: [{word: "肉 (にく)", romaji: "niku", meaning: "Meat", example: "夕食に肉を食べます。", exRomaji: "Yuushoku ni niku o tabemasu.", exMeaning: "Eat meat for dinner."}]},
+            {char: "ぬ", romaji: "nu", vocab: [{word: "布 (ぬの)", romaji: "nuno", meaning: "Cloth", example: "赤い布で服を作る。", exRomaji: "Akai nuno de fuku o tsukuru.", exMeaning: "Make clothes with red cloth."}]},
+            {char: "ね", romaji: "ne", vocab: [{word: "猫 (ねこ)", romaji: "neko", meaning: "Cat", example: "猫が日向ぼっこする。", exRomaji: "Neko ga hinatabokko suru.", exMeaning: "The cat is sunbathing."}]},
+            {char: "の", romaji: "no", vocab: [{word: "ノート", romaji: "nooto", meaning: "Notebook", example: "ノートに漢字を書く。", exRomaji: "Nooto ni kanji o kaku.", exMeaning: "Write kanji in the notebook."}]},
+            {char: "は", romaji: "ha", vocab: [{word: "花 (はな)", romaji: "hana", meaning: "Flower", example: "庭に花が咲いている。", exRomaji: "Niwa ni hana ga saite iru.", exMeaning: "Flowers are blooming in the garden."}]},
+            {char: "ひ", romaji: "hi", vocab: [{word: "飛行機 (ひこうき)", romaji: "hikouki", meaning: "Airplane", example: "飛行機で日本に行く。", exRomaji: "Hikouki de Nihon ni iku.", exMeaning: "Go to Japan by airplane."}]},
+            {char: "ふ", romaji: "fu", vocab: [{word: "船 (ふね)", romaji: "fune", meaning: "Ship / Boat", example: "海で大きな船を見る。", exRomaji: "Umi de ookina fune o miru.", exMeaning: "See a big ship in the sea."}]},
+            {char: "へ", romaji: "he", vocab: [{word: "部屋 (へや)", romaji: "heya", meaning: "Room", example: "自分の部屋を掃除する。", exRomaji: "Jibun no heya o souji suru.", exMeaning: "Clean one's own room."}]},
+            {char: "ほ", romaji: "ho", vocab: [{word: "本 (ほん)", romaji: "hon", meaning: "Book", example: "図書館で本を借りる。", exRomaji: "Toshokan de hon o kariru.", exMeaning: "Borrow a book from the library."}]},
+            {char: "ま", romaji: "ma", vocab: [{word: "窓 (まど)", romaji: "mado", meaning: "Window", example: "朝、窓を開けます。", exRomaji: "Asa, mado o akemasu.", exMeaning: "Open the window in the morning."}]},
+            {char: "み", romaji: "mi", vocab: [{word: "水 (みず)", romaji: "mizu", meaning: "Water", example: "コップに水を注ぐ。", exRomaji: "Koppu ni mizu o sosogu.", exMeaning: "Pour water into a cup."}]},
+            {char: "む", romaji: "mu", vocab: [{word: "虫 (むし)", romaji: "mushi", meaning: "Insect / Bug", example: "草むらに虫がいる。", exRomaji: "Kusamura ni mushi ga iru.", exMeaning: "There are insects in the grass."}]},
+            {char: "め", romaji: "me", vocab: [{word: "目 (め)", romaji: "me", meaning: "Eye", example: "目を大きく開ける。", exRomaji: "Me o ookiku akeru.", exMeaning: "Open eyes wide."}]},
+            {char: "も", romaji: "mo", vocab: [{word: "森 (もり)", romaji: "mori", meaning: "Forest", example: "森の中に動物がいる。", exRomaji: "Mori no naka ni doubutsu ga iru.", exMeaning: "There are animals in the forest."}]},
+            {char: "や", romaji: "ya", vocab: [{word: "山 (やま)", romaji: "yama", meaning: "Mountain", example: "週末に山に登る。", exRomaji: "Shumatsu ni yama ni noboru.", exMeaning: "Climb mountains on the weekend."}]},
+            {char: "ゆ", romaji: "yu", vocab: [{word: "雪 (ゆき)", romaji: "yuki", meaning: "Snow", example: "冬になると雪が降る。", exRomaji: "Fuyu ni naru to yuki ga furu.", exMeaning: "It snows when winter comes."}]},
+            {char: "よ", romaji: "yo", vocab: [{word: "夜 (よる)", romaji: "yoru", meaning: "Night", example: "夜空に星が輝く。", exRomaji: "Yozora ni hoshi ga kagayaku.", exMeaning: "Stars shine in the night sky."}]},
+            {char: "ら", romaji: "ra", vocab: [{word: "ラジオ", romaji: "rajio", meaning: "Radio", example: "朝ラジオを聞きます。", exRomaji: "Asa rajio o kikimasu.", exMeaning: "Listen to the radio in the morning."}]},
+            {char: "り", romaji: "ri", vocab: [{word: "林檎 (りんご)", romaji: "ringo", meaning: "Apple", example: "赤いリンゴを食べる。", exRomaji: "Akai ringo o taberu.", exMeaning: "Eat a red apple."}]},
+            {char: "る", romaji: "ru", vocab: [{word: "留守 (るす)", romaji: "rusu", meaning: "Absence / Away", example: "今日は一日中留守です。", exRomaji: "Kyou wa ichinichijuu rusu desu.", exMeaning: "Away from home all day today."}]},
+            {char: "れ", romaji: "re", vocab: [{word: "歴史 (れきし)", romaji: "rekishi", meaning: "History", example: "日本の歴史を勉強する。", exRomaji: "Nihon no rekishi o benkyou suru.", exMeaning: "Study Japanese history."}]},
+            {char: "ろ", romaji: "ro", vocab: [{word: "路地 (ろじ)", romaji: "roji", meaning: "Alley / Street", example: "静かな路地を歩く。", exRomaji: "Shizuka na roji o aruku.", exMeaning: "Walk down a quiet alley."}]},
+            {char: "わ", romaji: "wa", vocab: [{word: "私 (わたし)", romaji: "watashi", meaning: "I / Myself", example: "私は学生です。", exRomaji: "Watashi wa gakusei desu.", exMeaning: "I am a student."}]},
+            {char: "を", romaji: "o", vocab: [{word: "本を読む", romaji: "o", meaning: "Object Marker", example: "本を読みます。", exRomaji: "Hon o yomimasu.", exMeaning: "Read a book."}]},
+            {char: "ん", romaji: "n", vocab: [{word: "天気 (てんき)", romaji: "tenki", meaning: "Weather", example: "今日は良い天気です。", exRomaji: "Kyou wa yoi tenki desu.", exMeaning: "Today is good weather."}]}
+        ];
+
+        function initGrid() {
+            const grid = document.getElementById('kanaGrid');
+            grid.innerHTML = '';
+            kanaData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'kana-card';
+                card.innerHTML = `
+                    <div class="kana-char">${item.char}</div>
+                    <div class="kana-romaji">${item.romaji}</div>
+                `;
+                card.onclick = () => openDetail(item);
+                grid.appendChild(card);
+            });
+        }
+
+        let currentItem = null;
+        function openDetail(item) {
+            currentItem = item;
+            document.getElementById('learnView').style.display = 'none';
+            document.getElementById('detailView').style.display = 'block';
+            
+            document.getElementById('detChar').innerText = item.char;
+            document.getElementById('detRomaji').innerText = item.romaji;
+
+            let vocabHtml = '';
+            item.vocab.forEach(v => {
+                vocabHtml += `
+                    <div class="vocab-item">
+                        <div class="vocab-word">${v.word} (${v.romaji})</div>
+                        <div class="vocab-sub">Meaning: ${v.meaning}</div>
+                        <div class="vocab-example">Ex: ${v.example} (${v.exRomaji})<br>➔ ${v.exMeaning}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('vocabContent').innerHTML = vocabHtml;
+
+            initCanvas(item.char);
+        }
+
+        function goBack() {
+            document.getElementById('detailView').style.display = 'none';
+            document.getElementById('learnView').style.display = 'block';
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('learnView').style.display = 'none';
+            document.getElementById('detailView').style.display = 'none';
+            document.getElementById('quizView').style.display = 'none';
+            document.getElementById('vocabQuizView').style.display = 'none';
+
+            if (tab === 'learn') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('learnView').style.display = 'block';
+            } else if (tab === 'quiz') {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('quizView').style.display = 'block';
+            } else if (tab === 'vocabQuiz') {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('vocabQuizView').style.display = 'block';
+            }
+        }
+
+        function speakCurrent() {
+            if (!currentItem) return;
+            const textToSpeak = currentItem.vocab[0] ? currentItem.vocab[0].word.split(' ')[0] : currentItem.char;
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.lang = 'ja-JP';
+            window.speechSynthesis.speak(utterance);
+        }
+
+        let canvas, ctx, bgCanvas, bgCtx;
+        let drawing = false;
+        let currentTool = 'pen';
+
+        function initCanvas(char) {
+            canvas = document.getElementById('drawCanvas');
+            ctx = canvas.getContext('2d');
+            bgCanvas = document.getElementById('bgCanvas');
+            bgCtx = bgCanvas.getContext('2d');
+
+            canvas.width = 220;
+            canvas.height = 220;
+            bgCanvas.width = 220;
+            bgCanvas.height = 220;
+
+            bgCtx.clearRect(0, 0, 220, 220);
+            bgCtx.font = "bold 140px sans-serif";
+            bgCtx.fillStyle = "#e2e8f0";
+            bgCtx.textAlign = "center";
+            bgCtx.textBaseline = "middle";
+            bgCtx.fillText(char, 110, 110);
+
+            ctx.clearRect(0, 0, 220, 220);
+
+            canvas.onmousedown = startDraw;
+            canvas.onmousemove = draw;
+            canvas.onmouseup = stopDraw;
+            canvas.onmouseleave = stopDraw;
+
+            canvas.ontouchstart = (e) => { startDraw(e.touches[0]); e.preventDefault(); };
+            canvas.ontouchmove = (e) => { draw(e.touches[0]); e.preventDefault(); };
+            canvas.ontouchend = stopDraw;
+        }
+
+        function setTool(tool) {
+            currentTool = tool;
+            document.getElementById('penBtn').classList.toggle('active', tool === 'pen');
+            document.getElementById('eraserBtn').classList.toggle('active', tool === 'eraser');
+        }
+
+        function clearDraw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        function startDraw(e) {
+            drawing = true;
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
+
+        function draw(e) {
+            if (!drawing) return;
+            const pos = getPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.lineWidth = currentTool === 'eraser' ? 24 : 6;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            if (currentTool === 'eraser') {
+                ctx.globalCompositeOperation = 'destination-out';
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = '#0f172a';
+            }
+            ctx.stroke();
+        }
+
+        function stopDraw() {
+            drawing = false;
+        }
+
+        let quizList = [];
+        let quizIndex = 0;
+        let score = 0;
+
+        function startQuiz() {
+            const limit = parseInt(document.getElementById('quizRange').value);
+            quizList = [...kanaData].slice(0, limit);
+            quizList.sort(() => Math.random() - 0.5);
+            quizList = quizList.slice(0, 10);
+            quizIndex = 0;
+            score = 0;
+
+            document.querySelector('.quiz-settings').classList.add('hidden');
+            document.getElementById('quizArea').classList.remove('hidden');
+            loadQuizQuestion();
+        }
+
+        function loadQuizQuestion() {
+            if (quizIndex >= quizList.length) {
+                document.getElementById('quizArea').innerHTML = `
+                    <div class="quiz-card">
+                        <div class="quiz-target">Quiz Completed!</div>
+                        <p style="font-size: 1.1rem; margin-top: 10px;">Your Score: ${score} / ${quizList.length}</p>
+                        <button class="speak-btn" style="margin-top: 20px;" onclick="location.reload()">Restart</button>
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById('quizProgress').innerText = `Question ${quizIndex + 1} / ${quizList.length}`;
+            const currentQ = quizList[quizIndex];
+            document.getElementById('quizTargetChar').innerText = currentQ.char;
+
+            let options = [currentQ.romaji];
+            while (options.length < 4) {
+                const randomItem = kanaData[Math.floor(Math.random() * kanaData.length)];
+                if (!options.includes(randomItem.romaji)) {
+                    options.push(randomItem.romaji);
+                }
+            }
+            options.sort(() => Math.random() - 0.5);
+
+            const optionsContainer = document.getElementById('quizOptions');
+            optionsContainer.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => checkQuizAnswer(btn, opt, currentQ.romaji);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkQuizAnswer(btn, selected, correct) {
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.disabled = true);
+
+            if (selected === correct) {
+                btn.classList.add('correct');
+                score++;
+                playAudioTone(800, 150);
+            } else {
+                btn.classList.add('wrong');
+                playAudioTone(300, 300);
+                allBtns.forEach(b => {
+                    if (b.innerText === correct) b.classList.add('correct');
+                });
+            }
+
+            setTimeout(() => {
+                quizIndex++;
+                loadQuizQuestion();
+            }, 1200);
+        }
+
+        let vocabQuizList = [];
+        let vocabQuizIndex = 0;
+        let vocabScore = 0;
+
+        function startVocabQuiz() {
+            vocabQuizList = kanaData.filter(item => item.vocab && item.vocab.length > 0);
+            vocabQuizList.sort(() => Math.random() - 0.5);
+            vocabQuizList = vocabQuizList.slice(0, 10);
+            vocabQuizIndex = 0;
+            vocabScore = 0;
+
+            document.querySelector('#vocabQuizView .quiz-settings').classList.add('hidden');
+            document.getElementById('vocabQuizArea').classList.remove('hidden');
+            loadVocabQuestion();
+        }
+
+        function loadVocabQuestion() {
+            if (vocabQuizIndex >= vocabQuizList.length) {
+                document.getElementById('vocabQuizArea').innerHTML = `
+                    <div class="quiz-card">
+                        <div class="quiz-target">Vocab Quiz Completed!</div>
+                        <p style="font-size: 1.1rem; margin-top: 10px;">Your Score: ${vocabScore} / ${vocabQuizList.length}</p>
+                        <button class="speak-btn" style="margin-top: 20px;" onclick="location.reload()">Restart</button>
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById('vocabQuizProgress').innerText = `Question ${vocabQuizIndex + 1} / ${vocabQuizList.length}`;
+            const currentQ = vocabQuizList[vocabQuizIndex];
+            const vocabObj = currentQ.vocab[0];
+            
+            document.getElementById('vocabQuizTarget').innerText = vocabObj.word;
+
+            let options = [vocabObj.meaning];
+            while (options.length < 4) {
+                const randomItem = kanaData[Math.floor(Math.random() * kanaData.length)];
+                if (randomItem.vocab && randomItem.vocab[0]) {
+                    const randMeaning = randomItem.vocab[0].meaning;
+                    if (!options.includes(randMeaning)) {
+                        options.push(randMeaning);
+                    }
+                }
+            }
+            options.sort(() => Math.random() - 0.5);
+
+            const optionsContainer = document.getElementById('vocabQuizOptions');
+            optionsContainer.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.style.fontSize = '1rem';
+                btn.onclick = () => checkVocabAnswer(btn, opt, vocabObj.meaning);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkVocabAnswer(btn, selected, correct) {
+            const allBtns = document.querySelectorAll('#vocabQuizOptions .option-btn');
+            allBtns.forEach(b => b.disabled = true);
+
+            if (selected === correct) {
+                btn.classList.add('correct');
+                vocabScore++;
+                playAudioTone(800, 150);
+            } else {
+                btn.classList.add('wrong');
+                playAudioTone(300, 300);
+                allBtns.forEach(b => {
+                    if (b.innerText === correct) b.classList.add('correct');
+                });
+            }
+
+            setTimeout(() => {
+                vocabQuizIndex++;
+                loadVocabQuestion();
+            }, 1200);
+        }
+
+        function playAudioTone(freq, duration) {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.value = freq;
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                setTimeout(() => { oscillator.stop(); }, duration);
+            } catch (e) {
+                console.log('Audio error', e);
+            }
+        }
+
+        window.onload = initGrid;
+    </script>
+</body>
+</html>
+```[cite: 1]
